@@ -10,7 +10,7 @@ export default function TopNav() {
   const { logout, admin } = useAuth();
 
   const navItems = [
-    { href: "/", label: "Home" },
+    { href: "/dashboard", label: "Home" },
     { href: "/instances", label: "Instances" },
     { href: "/docs", label: "Docs" },
     { href: "/about", label: "About" },

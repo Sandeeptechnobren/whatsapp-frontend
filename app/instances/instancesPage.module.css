@@ -1,0 +1,27 @@
+.instancesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.leftPane,
+.rightPane {
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 2rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .instancesContainer {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .leftPane,
+  .rightPane {
+    width: 50%;
+  }
+}

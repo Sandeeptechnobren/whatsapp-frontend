@@ -24,7 +24,7 @@ import TopNav from "./components/TopNav";
 import Footer from "./components/Footer";
 
 function LayoutContent({ children }: { children: ReactNode }) {
-  const { isLoggedIn } = useAuth(); // ✅ use custom hook
+  const { isLoggedIn } = useAuth();
 
   return (
     <body className="flex h-screen flex-col">

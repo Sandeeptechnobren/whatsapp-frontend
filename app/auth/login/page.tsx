@@ -1,7 +1,7 @@
 "use client";
 import { APP_NAME } from "@/app/config";
 import { useState } from "react";
-import { loginAdmin } from "@/app/allapis"; // <-- import here
+import { loginAdmin } from "@/app/allapis";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
   const [loading, setLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const validate = () => {
     const newErrors: { username?: string; password?: string } = {};
@@ -22,6 +23,7 @@ export default function LoginPage() {
     e.preventDefault();
     if (!validate()) return;
     setLoading(true);
+    setLoginError(null);
 
     try {
       const data = await loginAdmin({ username, password });
@@ -31,8 +33,12 @@ export default function LoginPage() {
 
       alert("Login successful!");
       window.location.href = "/dashboard";
-    } catch (error: any) {
-      alert(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setLoginError(error.message || "Login failed!");
+      } else {
+        setLoginError("Login failed!");
+      }
     } finally {
       setLoading(false);
     }
@@ -48,6 +54,10 @@ export default function LoginPage() {
         <h1 className="text-3xl font-extrabold mb-6 text-center text-gray-800">
           Welcome to {APP_NAME}
         </h1>
+
+        {loginError && (
+          <div className="mb-4 text-center text-red-700 font-semibold">{loginError}</div>
+        )}
 
         {/* Username input */}
         <label htmlFor="username" className="block mb-1 font-semibold text-gray-700">
@@ -90,6 +100,7 @@ export default function LoginPage() {
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            tabIndex={-1}
           >
             {showPassword ? "🙈" : "👁"}
           </button>

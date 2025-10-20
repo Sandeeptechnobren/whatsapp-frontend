@@ -28,8 +28,12 @@ export async function loginAdmin(payload: LoginPayload) {
       throw new Error(data.error || "Login failed");
     }
     return data;
-  } catch (error: any) {
-    throw new Error(error.message || "Something went wrong");
+  }
+  catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "Something went wrong");
+    }
+    throw new Error("Something went wrong");
   }
 }
 
@@ -46,9 +50,13 @@ export async function signupAdmin(payload: SignupPayload){
         }
         return data;
     }
-    catch (error: any) {
-    throw new Error(error.message || "Something went wrong");
+  catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "Something went wrong");
     }
+    throw new Error("Something went wrong");
+  }
+
 }
 
 export async function instancesStatistics(token:string){
@@ -66,7 +74,11 @@ export async function instancesStatistics(token:string){
     }
     return data;
   }
-  catch(error:any){
-    throw new Error(error.message||"Something went wrong");
+  catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "Something went wrong");
+    }
+    throw new Error("Something went wrong");
   }
+
 }

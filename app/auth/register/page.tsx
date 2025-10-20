@@ -4,8 +4,17 @@ import { signupAdmin } from "@/app/allapis";
 import { APP_NAME } from "@/app/config";
 import { useState } from "react";
 
+type FormFields = {
+  username: string;
+  name: string;
+  email: string;
+  password: string;
+  address: string;
+  phone: string;
+};
+
 export default function RegisterPage() {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormFields>({
     username: "",
     name: "",
     email: "",
@@ -14,7 +23,7 @@ export default function RegisterPage() {
     phone: "",
   });
 
-  const [errors, setErrors] = useState<Partial<typeof form>>({});
+  const [errors, setErrors] = useState<Partial<FormFields>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -35,7 +44,7 @@ export default function RegisterPage() {
 
   // ✅ Validation before submitting
   const validate = () => {
-    const newErrors: Partial<typeof form> = {};
+    const newErrors: Partial<FormFields> = {};
     if (!form.username.trim()) newErrors.username = "Username is required";
     else if (form.username.length < 3) newErrors.username = "Username must be at least 3 characters";
     if (!form.name.trim()) newErrors.name = "Full name is required";
@@ -58,11 +67,15 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const res = await signupAdmin(form); 
+      const res = await signupAdmin(form);
       alert("Signup successful!");
       window.location.href = "/auth/login";
-    } catch (error: any) {
-      alert(error.message || "Signup failed!");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert(error.message || "Signup failed!");
+      } else {
+        alert("Signup failed!");
+      }
     } finally {
       setLoading(false);
     }
@@ -84,32 +97,33 @@ export default function RegisterPage() {
           { id: "name", label: "Full Name", type: "text", placeholder: "Full Name" },
           { id: "email", label: "Email", type: "email", placeholder: "Email" },
           { id: "phone", label: "Phone", type: "tel", placeholder: "+1 234 567 8900" },
-        ].map((field) => (
-          <div key={field.id} className="relative flex flex-col">
-            <input
-              id={field.id}
-              name={field.id}
-              type={field.type}
-              placeholder=" "
-              value={(form as any)[field.id]}
-              onChange={handleChange}
-              className={`peer w-full px-3 pt-5 pb-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-400 text-sm sm:text-base transition text-black ${
-                (errors as any)[field.id]
-                  ? "border-red-500 focus:ring-red-400"
-                  : "border-gray-300"
-              }`}
-            />
-            <label
-              htmlFor={field.id}
-              className={`absolute left-3 top-2 text-gray-400 text-xs transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:text-gray-600 peer-focus:text-xs`}
-            >
-              {field.label}
-            </label>
-            {(errors as any)[field.id] && (
-              <p className="text-red-500 text-xs mt-1">{(errors as any)[field.id]}</p>
-            )}
-          </div>
-        ))}
+        ].map((field) => {
+          const errorMsg = errors[field.id as keyof FormFields];
+          return (
+            <div key={field.id} className="relative flex flex-col">
+              <input
+                id={field.id}
+                name={field.id}
+                type={field.type}
+                placeholder=" "
+                value={form[field.id as keyof FormFields]}
+                onChange={handleChange}
+                className={`peer w-full px-3 pt-5 pb-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-400 text-sm sm:text-base transition text-black ${
+                  errorMsg ? "border-red-500 focus:ring-red-400" : "border-gray-300"
+                }`}
+              />
+              <label
+                htmlFor={field.id}
+                className={`absolute left-3 top-2 text-gray-400 text-xs transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:text-gray-600 peer-focus:text-xs`}
+              >
+                {field.label}
+              </label>
+              {errorMsg && (
+                <p className="text-red-500 text-xs mt-1">{errorMsg}</p>
+              )}
+            </div>
+          );
+        })}
 
         {/* Password */}
         <div className="relative flex flex-col">
