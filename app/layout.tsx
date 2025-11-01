@@ -1,31 +1,11 @@
-// "use client";
-
-// import "./globals.css";
-// import { ReactNode } from "react";
-// import { AuthProvider } from "./AuthContext";
-
-// export default function RootLayout({ children }: { children: ReactNode }) {
-//   return (
-//     <html lang="en">
-//       <body className="flex h-screen">
-//         <AuthProvider>
-//           <main className="flex-1 bg-gray-100">{children}</main>
-//         </AuthProvider>
-//       </body>
-//     </html>
-//   );
-// }
 "use client";
-
 import "./globals.css";
 import { ReactNode } from "react";
-import { AuthProvider, useAuth } from "./AuthContext"; // ✅ import useAuth hook
+import { AuthProvider, useAuth } from "./AuthContext";
 import TopNav from "./components/TopNav";
 import Footer from "./components/Footer";
-
 function LayoutContent({ children }: { children: ReactNode }) {
   const { isLoggedIn } = useAuth();
-
   return (
     <body className="flex h-screen flex-col">
       {/* Show Navbar only when logged in */}
@@ -35,7 +15,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
     </body>
   );
 }
-
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">

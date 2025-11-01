@@ -14,8 +14,7 @@ export default function TopNav() {
     { href: "/instances", label: "Instances" },
     { href: "/docs", label: "Docs" },
     { href: "/about", label: "About" },
-    { href: "/billing", label: "Billing" },
-    { href: "/subscriptions", label: "Subscriptions" },
+    { href: "/billing_subscription", label: "Billing" },
   ];
 
   return (

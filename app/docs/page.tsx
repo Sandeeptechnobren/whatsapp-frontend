@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import UnderDevelopment from "../components/UnderDevelopment"; // Adjust path as needed
 
 export default function DocumentsPage() {
   return (
@@ -8,12 +9,7 @@ export default function DocumentsPage() {
       <h1 className="text-3xl font-bold text-purple-700 mb-6">
         Documents
       </h1>
-      <p className="text-gray-700 mb-6">
-        This page will list user guides, API documentation, agreements, or any helpful documents related to your system.
-      </p>
-      <div className="border border-gray-200 rounded-lg px-6 py-8 text-center bg-gray-50">
-        <span className="text-lg text-gray-600">No documents uploaded yet.</span>
-      </div>
+      <UnderDevelopment message="This page in Chatterly is under development. You will be able to view guides, API docs, and more soon!" />
     </div>
   );
 }
