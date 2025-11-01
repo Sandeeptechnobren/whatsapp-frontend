@@ -24,13 +24,10 @@ export default function LoginPage() {
     if (!validate()) return;
     setLoading(true);
     setLoginError(null);
-
     try {
       const data = await loginAdmin({ username, password });
-
       localStorage.setItem("token", data.admin.token);
       localStorage.setItem("admin", JSON.stringify(data.admin));
-
       alert("Login successful!");
       window.location.href = "/dashboard";
     } catch (error: unknown) {

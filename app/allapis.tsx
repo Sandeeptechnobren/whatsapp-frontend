@@ -1,5 +1,7 @@
 // src/app/api/allApis.tsx
 
+import { get } from "axios";
+
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4400/";
 
 interface LoginPayload {
@@ -65,7 +67,7 @@ export async function instancesStatistics(token:string){
         method:"POST",
         headers: {
           "Content-Type":"application/json",
-          "Authorization": token, // pass token
+          "Authorization": token,
         },
     });
     const data=await res.json();
@@ -81,4 +83,51 @@ export async function instancesStatistics(token:string){
     throw new Error("Something went wrong");
   }
 
+}
+
+export async function createInstance(token: string, instance_name: string) {
+  try {
+    const res = await fetch(`${API_BASE_URL}instance/create`, { // correct endpoint!
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token,
+      },
+      body: JSON.stringify({ instance_name }), // send as an object!
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || "Instance creation failed");
+    }
+    // Assume the API returns { instance_name: "..." }
+    return data;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "Something went wrong");
+    }
+    throw new Error("Something went wrong");
+  }
+}
+
+export async function getAllInstances(token:string){
+  try{
+    const res=await fetch(`${API_BASE_URL}instance/list`,{
+        method:"GET",
+        headers:{
+            "Content-Type":"application/json",
+            "Authorization":token,
+        },  
+    });
+    const data=await res.json();
+    if(!res.ok){
+        throw new Error(data.error||"Fetching instances failed");
+    }
+    return data;
+  }
+  catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "Something went wrong");
+    }
+    throw new Error("Something went wrong");
+  }
 }

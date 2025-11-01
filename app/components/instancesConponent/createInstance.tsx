@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { createInstance } from "@/app/allapis";
+import Image from "next/image";
 
-function generateInstanceName() {
+function generateinstance_name() {
   const prefixes = ["Alpha", "Beta", "Gamma", "Delta", "Omega"];
   const suffix = Math.floor(Math.random() * 10000);
   return `${prefixes[Math.floor(Math.random() * prefixes.length)]}-${suffix}`;
@@ -10,7 +12,7 @@ function generateInstanceName() {
 
 export default function CreateInstance() {
   const [useCustomName, setUseCustomName] = useState(false);
-  const [instanceName, setInstanceName] = useState(generateInstanceName());
+  const [instance_name, setinstance_name] = useState(generateinstance_name());
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -18,43 +20,44 @@ export default function CreateInstance() {
   const handleModeChange = (isCustom: boolean) => {
     setUseCustomName(isCustom);
     if (!isCustom) {
-      setInstanceName(generateInstanceName());
+      setinstance_name(generateinstance_name());
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInstanceName(e.target.value);
+    setinstance_name(e.target.value);
+  };
+
+  const validate = () => {
+    if (useCustomName && instance_name.trim() === "") {
+      setError("Instance name cannot be empty.");
+      return false;
+    } else {
+      setError("");
+      return true;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
     setLoading(true);
     setError("");
     setQrCodeUrl(null);
     try {
-      // Replace with your real endpoint
-      const response = await fetch("/api/instances", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: instanceName }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create instance");
-      }
-      // Assume backend returns { qrCode: "https://..." } or { qrCode: "data:image/png;base64,..." }
-      const data = await response.json();
-      setQrCodeUrl(data.qrCode); // qrCode is URL or data base64 from backend
-    } catch (err: unknown ) {
-      if (err instanceof Error) {
-        setError(err.message || "Unknown error");
+      const token = localStorage.getItem("token") || "";
+      const result = await createInstance(token, instance_name) as { qrCode?: string } | void;
+      alert("Instance created successfully!");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message || "Something went wrong");
       } else {
-        setError("Unknown error");
+        setError("Something went wrong");
       }
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <div className="max-w-lg mx-auto bg-white rounded-xl shadow-md p-6">
@@ -96,7 +99,7 @@ export default function CreateInstance() {
             className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 ${
               useCustomName ? "" : "bg-gray-100 text-gray-500"
             }`}
-            value={instanceName}
+            value={instance_name}
             onChange={handleInputChange}
             disabled={!useCustomName}
             required
@@ -117,7 +120,14 @@ export default function CreateInstance() {
       {qrCodeUrl && (
         <div className="mt-6 flex flex-col items-center">
           <span className="font-bold mb-2">Instance QR Code:</span>
-          <img src={qrCodeUrl} alt="QR Code" className="w-40 h-40 border rounded-md" />
+          <Image
+            src={qrCodeUrl}
+            alt="QR Code"
+            width={160}
+            height={160}
+            className="border rounded-md"
+            unoptimized // use this if qrCodeUrl is base64 or remote domain not yet configured in next.config.js
+          />
         </div>
       )}
     </div>
