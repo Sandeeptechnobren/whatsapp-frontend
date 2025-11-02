@@ -1,6 +1,8 @@
 "use client";
-import { APP_NAME } from "@/app/config";
+
 import { useState } from "react";
+import { motion } from "framer-motion";
+import { APP_NAME } from "@/app/config";
 import { loginAdmin } from "@/app/allapis";
 
 export default function LoginPage() {
@@ -42,42 +44,61 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex h-screen items-center justify-center bg-gradient-to-r from-green-400 to-blue-500 px-4">
-      <form
+    <div className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
+      {/* Animated background circles */}
+      <motion.div
+        className="absolute -top-32 -left-32 w-96 h-96 bg-white/20 rounded-full blur-3xl"
+        animate={{ y: [0, 40, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute -bottom-32 -right-32 w-[28rem] h-[28rem] bg-pink-300/30 rounded-full blur-3xl"
+        animate={{ y: [0, -40, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* Glassmorphic login card */}
+      <motion.form
         onSubmit={handleLogin}
-        className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md"
-        noValidate
+        className="relative z-10 w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 p-10 rounded-2xl shadow-2xl"
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
       >
-        <h1 className="text-3xl font-extrabold mb-6 text-center text-gray-800">
+        <h1 className="text-4xl font-extrabold mb-6 text-center text-white drop-shadow-lg">
           Welcome to {APP_NAME}
         </h1>
 
         {loginError && (
-          <div className="mb-4 text-center text-red-700 font-semibold">{loginError}</div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mb-4 text-center text-red-200 font-semibold"
+          >
+            {loginError}
+          </motion.div>
         )}
 
         {/* Username input */}
-        <label htmlFor="username" className="block mb-1 font-semibold text-gray-700">
+        <label htmlFor="username" className="block mb-2 font-semibold text-white/90">
           Username
         </label>
         <input
           id="username"
           type="text"
           placeholder="Enter your username"
-          className={`w-full p-3 mb-2 border rounded-md text-black focus:outline-none focus:ring-2 transition ${
-            errors.username
-              ? "border-red-500 focus:ring-red-400"
-              : "border-gray-300 focus:ring-green-400"
+          className={`w-full p-3 mb-3 rounded-lg bg-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-2 ${
+            errors.username ? "focus:ring-red-400" : "focus:ring-green-400"
           }`}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
         {errors.username && (
-          <p className="text-red-600 text-sm mb-3">{errors.username}</p>
+          <p className="text-red-300 text-sm mb-3">{errors.username}</p>
         )}
 
         {/* Password input */}
-        <label htmlFor="password" className="block mb-1 font-semibold text-gray-700">
+        <label htmlFor="password" className="block mb-2 font-semibold text-white/90">
           Password
         </label>
         <div className="relative mb-4">
@@ -85,10 +106,8 @@ export default function LoginPage() {
             id="password"
             type={showPassword ? "text" : "password"}
             placeholder="Enter your password"
-            className={`w-full p-3 border rounded-md text-black focus:outline-none focus:ring-2 transition ${
-              errors.password
-                ? "border-red-500 focus:ring-red-400"
-                : "border-gray-300 focus:ring-green-400"
+            className={`w-full p-3 rounded-lg bg-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-2 ${
+              errors.password ? "focus:ring-red-400" : "focus:ring-green-400"
             }`}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -96,29 +115,42 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white"
             tabIndex={-1}
           >
             {showPassword ? "🙈" : "👁"}
           </button>
         </div>
         {errors.password && (
-          <p className="text-red-600 text-sm mb-3">{errors.password}</p>
+          <p className="text-red-300 text-sm mb-3">{errors.password}</p>
         )}
 
         {/* Submit button */}
-        <button
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.02 }}
           type="submit"
           disabled={loading}
-          className={`w-full p-3 rounded-md text-white font-semibold transition ${
+          className={`w-full p-3 rounded-lg text-white font-semibold transition-all duration-300 shadow-lg ${
             loading
-              ? "bg-green-300 cursor-not-allowed"
-              : "bg-green-600 hover:bg-green-700"
+              ? "bg-green-400/60 cursor-not-allowed"
+              : "bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600"
           }`}
         >
           {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
+        </motion.button>
+
+        {/* Footer */}
+        <div className="text-center mt-5 text-white/80">
+          Don&apos;t have an account?{" "}
+          <a
+            href="/auth/register"
+            className="text-yellow-300 font-semibold hover:underline"
+          >
+            Click here...
+          </a>
+        </div>
+      </motion.form>
     </div>
   );
 }

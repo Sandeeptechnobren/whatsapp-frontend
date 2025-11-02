@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { signupAdmin } from "@/app/allapis";
 import { APP_NAME } from "@/app/config";
-import { useState } from "react";
 
 type FormFields = {
   username: string;
@@ -60,14 +61,14 @@ export default function RegisterPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ✅ Fixed handleSubmit
+  // ✅ Handle Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
     setLoading(true);
     try {
-      const res = await signupAdmin(form);
+      await signupAdmin(form);
       alert("Signup successful!");
       window.location.href = "/auth/login";
     } catch (error: unknown) {
@@ -82,133 +83,143 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-green-400 to-blue-500 p-4">
-      <form
+    <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 overflow-hidden">
+      {/* Floating background orbs */}
+      <motion.div
+        className="absolute -top-32 -left-32 w-96 h-96 bg-white/20 rounded-full blur-3xl"
+        animate={{ y: [0, 40, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute -bottom-32 -right-32 w-[28rem] h-[28rem] bg-pink-300/30 rounded-full blur-3xl"
+        animate={{ y: [0, -40, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* Glass card form */}
+      <motion.form
         onSubmit={handleSubmit}
-        className="bg-white sm:p-8 rounded-xl shadow-xl w-full max-w-2xl grid sm:grid-cols-2 gap-2 transition-transform duration-300 hover:scale-[1.006]"
-        noValidate
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative z-10 w-full max-w-3xl bg-white/10 backdrop-blur-xl border border-white/20 p-8 sm:p-10 rounded-2xl shadow-2xl grid sm:grid-cols-2 gap-4"
       >
-        <h1 className="text-xl sm:text-2xl font-bold col-span-2 text-center text-gray-800 mb-4">
+        <h1 className="text-3xl font-extrabold text-center text-white sm:col-span-2 mb-4 drop-shadow-lg">
           Register on {APP_NAME}
         </h1>
 
+        {/* Form Fields */}
         {[
-          { id: "username", label: "Username", type: "text", placeholder: "Username" },
-          { id: "name", label: "Full Name", type: "text", placeholder: "Full Name" },
-          { id: "email", label: "Email", type: "email", placeholder: "Email" },
-          { id: "phone", label: "Phone", type: "tel", placeholder: "+1 234 567 8900" },
-        ].map((field) => {
-          const errorMsg = errors[field.id as keyof FormFields];
-          return (
-            <div key={field.id} className="relative flex flex-col">
-              <input
-                id={field.id}
-                name={field.id}
-                type={field.type}
-                placeholder=" "
-                value={form[field.id as keyof FormFields]}
-                onChange={handleChange}
-                className={`peer w-full px-3 pt-5 pb-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-400 text-sm sm:text-base transition text-black ${
-                  errorMsg ? "border-red-500 focus:ring-red-400" : "border-gray-300"
-                }`}
-              />
-              <label
-                htmlFor={field.id}
-                className={`absolute left-3 top-2 text-gray-400 text-xs transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:text-gray-600 peer-focus:text-xs`}
-              >
-                {field.label}
-              </label>
-              {errorMsg && (
-                <p className="text-red-500 text-xs mt-1">{errorMsg}</p>
-              )}
-            </div>
-          );
-        })}
+          { id: "username", label: "Username", type: "text" },
+          { id: "name", label: "Full Name", type: "text" },
+          { id: "email", label: "Email", type: "email" },
+          { id: "phone", label: "Phone", type: "tel" },
+        ].map((field) => (
+          <div key={field.id} className="relative flex flex-col">
+            <input
+              id={field.id}
+              name={field.id}
+              type={field.type}
+              placeholder=" "
+              value={form[field.id as keyof FormFields]}
+              onChange={handleChange}
+              className={`peer w-full px-3 pt-5 pb-2 rounded-lg bg-white/20 text-white placeholder-transparent focus:outline-none focus:ring-2 ${
+                errors[field.id as keyof FormFields]
+                  ? "focus:ring-red-400 border-red-400"
+                  : "focus:ring-green-400 border-white/20"
+              } border`}
+            />
+            <label
+              htmlFor={field.id}
+              className="absolute left-3 top-2 text-white/70 text-xs transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-white/60 peer-focus:top-2 peer-focus:text-xs peer-focus:text-white"
+            >
+              {field.label}
+            </label>
+            {errors[field.id as keyof FormFields] && (
+              <p className="text-red-300 text-xs mt-1">
+                {errors[field.id as keyof FormFields]}
+              </p>
+            )}
+          </div>
+        ))}
 
         {/* Password */}
         <div className="relative flex flex-col">
           <input
-            id="password"
-            name="password"
-            type={showPassword ? "text" : "password"}
-            placeholder=" "
-            value={form.password}
-            onChange={handleChange}
-            className={`peer w-full px-3 pt-5 pb-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-400 text-sm sm:text-base transition text-black ${
-              errors.password ? "border-red-500 focus:ring-red-400" : "border-gray-300"
-            }`}
-          />
-          <label
-            htmlFor="password"
-            className="absolute left-3 top-2 text-gray-400 text-xs transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:text-gray-600 peer-focus:text-xs"
-          >
-            Password
-          </label>
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-sm sm:text-base focus:outline-none"
-          >
-            {showPassword ? "Hide" : "Show"}
-          </button>
-          {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+  id="password"
+  name="password"
+  type={showPassword ? "text" : "password"}
+  placeholder=" "
+  value={form.password}
+  onChange={handleChange}
+  className={`peer w-full px-3 pt-5 pb-2 rounded-lg bg-black/30 text-white placeholder-transparent focus:outline-none focus:ring-2 ${
+    errors.password ? "focus:ring-red-400 border-red-400" : "focus:ring-indigo-400 border-white/20"
+  } border transition-all duration-300`}
+/>
+<label
+  htmlFor="password"
+  className="absolute left-3 top-2 text-white/80 text-xs transition-all 
+    peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm 
+    peer-placeholder-shown:text-white/60 
+    peer-focus:top-2 peer-focus:text-xs peer-focus:text-indigo-300"
+>
+  Password
+</label>
+<button
+  type="button"
+  onClick={() => setShowPassword(!showPassword)}
+  className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-300 hover:text-white text-sm"
+>
+  {showPassword ? "🙈" : "👁"}
+</button>
+
         </div>
 
         {/* Address */}
-        <div className="flex flex-col sm:col-span-2 relative">
+        <div className="relative flex flex-col sm:col-span-2">
           <textarea
             id="address"
             name="address"
             placeholder=" "
+            rows={2}
             value={form.address}
             onChange={handleChange}
-            rows={2}
-            className={`peer w-full px-3 pt-5 pb-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-400 text-sm sm:text-base resize-none transition text-black ${
-              errors.address ? "border-red-500 focus:ring-red-400" : "border-gray-300"
-            }`}
+            className={`peer w-full px-3 pt-5 pb-2 rounded-lg bg-white/20 text-white placeholder-transparent focus:outline-none focus:ring-2 resize-none ${
+              errors.address ? "focus:ring-red-400 border-red-400" : "focus:ring-green-400 border-white/20"
+            } border`}
           />
           <label
             htmlFor="address"
-            className="absolute left-3 top-2 text-gray-400 text-xs transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:text-gray-600 peer-focus:text-xs"
+            className="absolute left-3 top-2 text-white/70 text-xs transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-sm peer-placeholder-shown:text-white/60 peer-focus:top-2 peer-focus:text-xs peer-focus:text-white"
           >
             Address
           </label>
-          {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+          {errors.address && <p className="text-red-300 text-xs mt-1">{errors.address}</p>}
         </div>
 
         {/* Submit button */}
-        <button
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.96 }}
           type="submit"
           disabled={loading}
-          className={`sm:col-span-2 w-full py-2 rounded-md text-white font-semibold transition-all flex justify-center items-center ${
-            loading ? "bg-green-300 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
+          className={`sm:col-span-2 w-full py-3 rounded-lg font-semibold text-white shadow-lg transition-all duration-300 ${
+            loading
+              ? "bg-green-400/50 cursor-not-allowed"
+              : "bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600"
           }`}
         >
-          {loading && (
-            <svg
-              className="animate-spin h-4 w-4 mr-2 text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v8H4z"
-              />
-            </svg>
-          )}
           {loading ? "Registering..." : "Register"}
-        </button>
-      </form>
+        </motion.button>
+
+        {/* Footer */}
+        <div className="text-center sm:col-span-2 text-white/80 mt-2">
+          Already have an account?{" "}
+          <a href="/auth/login" className="text-yellow-300 font-semibold hover:underline">
+            Login here
+          </a>
+        </div>
+      </motion.form>
     </div>
   );
 }

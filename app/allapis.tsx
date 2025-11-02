@@ -1,4 +1,4 @@
-// src/app/api/allApis.tsx
+// "use server"
 
 import { get } from "axios";
 

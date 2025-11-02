@@ -20,23 +20,23 @@ export default function InstanceDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const token = localStorage.getItem("token") || "";
-    async function fetchData() {
-      setLoading(true);
-      setError("");
-      try {
-        const instResponse = await getInstanceDetails(id, token);
-        setInstance(instResponse.data);
-        const qrResponse = await getInstanceQRCode(id, token);
-        setQrCode(qrResponse.data.qr); // Adjust property based on your actual QR API response
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Something went wrong");
-      }
-      setLoading(false);
-    }
-    fetchData();
-  }, [id]);
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token") || "";
+  //   async function fetchData() {
+  //     setLoading(true);
+  //     setError("");
+  //     try {
+  //       const instResponse = await getInstanceDetails(id, token);
+  //       setInstance(instResponse.data);
+  //       const qrResponse = await getInstanceQRCode(id, token);
+  //       setQrCode(qrResponse.data.qr); // Adjust property based on your actual QR API response
+  //     } catch (err: unknown) {
+  //       setError(err instanceof Error ? err.message : "Something went wrong");
+  //     }
+  //     setLoading(false);
+  //   }
+  //   fetchData();
+  // }, [id]);
 
   if (loading) {
     return (

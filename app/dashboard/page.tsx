@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-
 import StatCard from "../components/StatCard";
 import ApiUsage from "../components/ApiUsage";
 import ApiKey from "../components/ApiKey";
@@ -39,7 +38,6 @@ export default function DashboardPage() {
     setLoading(true);
     instancesStatistics(token)
       .then((data) => {
-        // If your API returns { data: { ...stats } }, extract as needed.
         if (data && data.totalInstances !== undefined) {
           setStats(data);
         } else if (data && data.data) {
@@ -57,10 +55,26 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-purple-100">
+      {/* Header Section */}
+      <header className="p-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md">
+        <h1 className="text-2xl font-bold tracking-wide">Dashboard Overview</h1>
+        <p className="text-sm opacity-80 mt-1">
+          Monitor your active sessions, API usage, and recent activities.
+        </p>
+      </header>
+
+      {/* Main Section */}
       <main className="flex-1 p-6 overflow-y-auto">
-        {/* Quick Stats */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        {/* Loading Indicator */}
+        {loading && (
+          <div className="flex justify-center items-center py-6">
+            <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-indigo-500 border-solid"></div>
+          </div>
+        )}
+
+        {/* Quick Stats Section */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
           <ActiveSessionsCard value={stats.totalInstances} />
           <MessagesCard value={stats.statusBreakdown.ready ?? 0} />
           <UsersCard
@@ -71,14 +85,23 @@ export default function DashboardPage() {
           />
         </section>
 
-        {/* API / Integration Info */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <ApiUsage />
-          <ApiKey />
+        {/* API / Integration Section */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 shadow-md hover:shadow-lg transition-all duration-300">
+            <ApiUsage />
+          </div>
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-5 shadow-md hover:shadow-lg transition-all duration-300">
+            <ApiKey />
+          </div>
         </section>
 
-        {/* Logs / Activity */}
-        <RecentActivity />
+        {/* Recent Activity Section */}
+        <section className="bg-white/80 backdrop-blur-md rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300">
+          <h2 className="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">
+            Recent Activity
+          </h2>
+          <RecentActivity />
+        </section>
       </main>
     </div>
   );
