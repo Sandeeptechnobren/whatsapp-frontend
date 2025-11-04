@@ -26,25 +26,25 @@ export default function InstanceSettings({ params }: { params: { id: string } })
   const [error, setError] = useState("");
   const router = useRouter();
 
-  useEffect(() => {
-    const token = localStorage.getItem("token") || "";
-    async function fetchData() {
-      setLoading(true);
-      setError("");
-      try {
-        // Fetch details
-        const instResponse = await getInstanceDetails(id, token);
-        setInstance(instResponse.data);
-        // Fetch QR Code (or get it from instResponse if included)
-        const qrResponse = await getInstanceQRCode(id, token);
-        setQrCode(qrResponse.data.qr); // Adjust based on your actual API response
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Something went wrong");
-      }
-      setLoading(false);
-    }
-    fetchData();
-  }, [id]);
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token") || "";
+  //   async function fetchData() {
+  //     setLoading(true);
+  //     setError("");
+  //     try {
+  //       // Fetch details
+  //       const instResponse = await getInstanceDetails(id, token);
+  //       setInstance(instResponse.data);
+  //       // Fetch QR Code (or get it from instResponse if included)
+  //       const qrResponse = await getInstanceQRCode(id, token);
+  //       setQrCode(qrResponse.data.qr); // Adjust based on your actual API response
+  //     } catch (err: unknown) {
+  //       setError(err instanceof Error ? err.message : "Something went wrong");
+  //     }
+  //     setLoading(false);
+  //   }
+  //   fetchData();
+  // }, [id]);
 
   if (loading) {
     return (
