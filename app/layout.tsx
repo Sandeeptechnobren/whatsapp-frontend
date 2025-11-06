@@ -1,5 +1,5 @@
 "use client";
-import "../app/globals.css"
+import "./globals.css"
 import { ReactNode } from "react";
 import { AuthProvider, useAuth } from "./AuthContext";
 import TopNav from "./(private)/components/TopNav";
