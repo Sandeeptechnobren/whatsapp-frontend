@@ -131,3 +131,59 @@ export async function getAllInstances(token:string){
     throw new Error("Something went wrong");
   }
 }
+
+
+export async function getInstanceQRCode(token: string, id: number) {
+  try {
+    const res = await fetch(`${API_BASE_URL}instance/${id}/qr.png`, {
+      method: "GET",
+      headers: {
+        "Authorization": token,
+      },
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || "Failed to fetch QR code");
+    }
+
+    // 🔥 Convert image blob to base64 URL for <Image/> or <img/>
+    const blob = await res.blob();
+    const qrCodeUrl = URL.createObjectURL(blob);
+
+    return qrCodeUrl;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "Something went wrong");
+    }
+    throw new Error("Something went wrong");
+  }
+}
+
+
+export async function getInstanceDetails(token: string, id: number) {
+  try {
+    const res = await fetch(`${API_BASE_URL}instance/${id}`, {
+      method: "GET",
+      headers: {
+        "Authorization": token,
+      },
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || "Failed to fetch QR code");
+    }
+
+    // 🔥 Convert image blob to base64 URL for <Image/> or <img/>
+    const blob = await res.blob();
+    const details = URL.createObjectURL(blob);
+
+    return details;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "Something went wrong");
+    }
+    throw new Error("Something went wrong");
+  }
+}

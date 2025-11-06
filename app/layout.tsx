@@ -1,9 +1,9 @@
 "use client";
-import "./globals.css";
+import "../app/globals.css"
 import { ReactNode } from "react";
 import { AuthProvider, useAuth } from "./AuthContext";
-import TopNav from "./components/TopNav";
-import Footer from "./components/Footer";
+import TopNav from "./(private)/components/TopNav";
+import Footer from "./(private)/components/Footer";
 function LayoutContent({ children }: { children: ReactNode }) {
   const { isLoggedIn } = useAuth();
   return (

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MessageSquare } from "lucide-react";
-import StatCard from "../components/StatCard";
+import StatCard from "../(private)/components/StatCard";
 
 interface ActiveInstances{
   value :number|string;
