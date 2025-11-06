@@ -55,13 +55,6 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-purple-100">
-      {/* Header Section */}
-      <header className="p-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md">
-        <h1 className="text-2xl font-bold tracking-wide">Dashboard Overview</h1>
-        <p className="text-sm opacity-80 mt-1">
-          Monitor your active sessions, API usage, and recent activities.
-        </p>
-      </header>
 
       {/* Main Section */}
       <main className="flex-1 p-6 overflow-y-auto">
