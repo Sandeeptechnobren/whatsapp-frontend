@@ -1,7 +1,7 @@
 "use client";
 
 import { Phone } from "lucide-react";
-import StatCard from "../components/StatCard";
+import StatCard from "../(private)/components/StatCard";
 import { log } from "console";
 
 interface ActiveSessionsCardProps {

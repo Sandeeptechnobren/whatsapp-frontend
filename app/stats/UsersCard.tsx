@@ -1,7 +1,7 @@
 "use client";
 
 import { Users } from "lucide-react";
-import StatCard from "../components/StatCard";
+import StatCard from "../(private)/components/StatCard";
 
 interface InactiveInstances {
   value: number | string;

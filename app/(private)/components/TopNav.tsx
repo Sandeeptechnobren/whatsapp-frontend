@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "../AuthContext";
-import { APP_NAME } from "../config";
+import { useAuth } from "@/app/AuthContext";
+import { APP_NAME } from "@/app/config";
 
 export default function TopNav() {
   const pathname = usePathname();

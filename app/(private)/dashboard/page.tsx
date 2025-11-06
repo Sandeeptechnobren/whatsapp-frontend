@@ -1,13 +1,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import StatCard from "../components/StatCard";
 import ApiUsage from "../components/ApiUsage";
 import ApiKey from "../components/ApiKey";
 import RecentActivity from "../components/RecentActivity";
-import ActiveSessionsCard from "../stats/ActiveSessionsCard";
-import MessagesCard from "../stats/MessagesCard";
-import UsersCard from "../stats/UsersCard";
-import { instancesStatistics } from "../allapis";
+import ActiveSessionsCard from "@/app/stats/ActiveSessionsCard";
+import MessagesCard from "@/app/stats/MessagesCard";
+import UsersCard from "@/app/stats/UsersCard";
+import { instancesStatistics } from "@/app/allapis";
 
 interface StatusBreakdown {
   pending: number;
