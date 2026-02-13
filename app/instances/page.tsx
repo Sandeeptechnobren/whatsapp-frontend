@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
-import CreateInstance from "../components/instancesConponent/createInstance";
-import InstancesList from "../components/instancesConponent/instancesList";
+// import CreateInstance from "../components/instancesConponent/createInstance";
+// import InstancesList from "../components/instancesConponent/instancesList";
+import CreateInstancePage from "./createinstance/page";
+import InstancesList from "./instanceslist/page";
 
 export default function InstancesPage() {
   return (
@@ -12,7 +14,8 @@ export default function InstancesPage() {
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
           <span className="text-purple-600 dark:text-purple-400">+</span> Create Instance
         </h2>
-        <CreateInstance />
+        {/* <CreateInstance /> */}
+        <CreateInstancePage/>
       </div>
 
       {/* Right Pane — Instance List */}
@@ -25,7 +28,8 @@ export default function InstancesPage() {
             Manage your running instances
           </span>
         </div>
-        <InstancesList />
+        {/* <InstancesList /> */}
+        <InstancesList/>
       </div>
     </div>
   );
