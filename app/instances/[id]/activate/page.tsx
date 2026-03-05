@@ -1,132 +1,7 @@
-
-// 'use client';
-
-// import { useParams } from "next/navigation";
-// import { useEffect, useState } from "react";
-// import { startInstance, getQRpng } from "../../../allapis";
-
-// export default function ActivateInstance() {
-//   const params = useParams();
-//   const instanceName = params.id as string;
-
-//   const [loading, setLoading] = useState(false);
-//   const [activated, setActivated] = useState(false);
-//   const [qrUrl, setQrUrl] = useState<string | null>(null);
-//   const [error, setError] = useState<string | null>(null);
-
-//   const getAdminToken = () => {
-//     const stored = localStorage.getItem("admin");
-//     if (!stored) throw new Error("Unauthorized. Please login again.");
-
-//     const parsed = JSON.parse(stored);
-//     if (!parsed?.adminToken)
-//       throw new Error("Unauthorized. Please login again.");
-
-//     return parsed.adminToken;
-//   };
-
-//   const handleActivate = async () => {
-//     try {
-//       setLoading(true);
-//       setError(null);
-//       const token = getAdminToken();
-//       await startInstance(token, instanceName);
-//       setTimeout(() => {
-//         setActivated(true);
-//         fetchQR();
-//       }, 10000);
-
-//     } catch (err: any) {
-//       setError(err.message);
-//       setLoading(false);
-//     }
-//   };
-//   const fetchQR = async () => {
-//     try {
-//       const token = getAdminToken();
-//       const blob = await getQRpng(token, instanceName);
-
-//       const imageUrl = URL.createObjectURL(blob);
-//       setQrUrl(imageUrl);
-//       setLoading(false);
-
-//     } catch (err: any) {
-//       setError("Failed to fetch QR");
-//       setLoading(false);
-//     }
-//   };
-//   useEffect(() => {
-//     if (!activated) return;
-
-//     const interval = setInterval(() => {
-//       fetchQR();
-//     }, 10000);
-
-//     return () => clearInterval(interval);
-//   }, [activated]);
-
-//   return (
-//     <div style={{ padding: 40 }}>
-//       <h1>Instance Activation</h1>
-//       <p><b>Instance Name:</b> {instanceName}</p>
-
-//       {!activated && (
-//         <button
-//           onClick={handleActivate}
-//           disabled={loading}
-//           style={{
-//             padding: "12px 20px",
-//             background: "#2563eb",
-//             color: "white",
-//             border: "none",
-//             borderRadius: 8,
-//             cursor: "pointer",
-//             fontSize: 16,
-//             marginBottom: 20
-//           }}
-//         >
-//           {loading ? "Starting..." : "Start Instance"}
-//         </button>
-//       )}
-
-//       {loading && (
-//         <div style={{ marginTop: 20 }}>
-//           ⏳ Starting instance... Please wait 10 seconds
-//         </div>
-//       )}
-
-//       {qrUrl && (
-//         <div style={{ marginTop: 30 }}>
-//           <h3>Scan QR to Connect WhatsApp</h3>
-//           <img
-//             src={qrUrl}
-//             alt="QR Code"
-//             style={{
-//               width: 300,
-//               height: 300,
-//               border: "1px solid #ddd",
-//               padding: 10,
-//               borderRadius: 10
-//             }}
-//           />
-//           <p style={{ marginTop: 10 }}>
-//             QR auto-refreshes every 10 seconds
-//           </p>
-//         </div>
-//       )}
-
-//       {error && (
-//         <div style={{ marginTop: 20, color: "red" }}>
-//           {error}
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
 'use client';
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { API_BASE_URL } from "../../../allapis";
 
 export default function ActivateInstance() {
@@ -139,9 +14,7 @@ export default function ActivateInstance() {
   const [status, setStatus] = useState<"idle" | "pending" | "ready">("idle");
   const [error, setError] = useState<string | null>(null);
 
-  /* ===============================
-     🔐 Get Admin Token
-  =============================== */
+  const qrObjectUrlRef = useRef<string | null>(null);
   const getAdminToken = () => {
     const stored = localStorage.getItem("admin");
     if (!stored) throw new Error("Unauthorized. Please login again.");
@@ -152,15 +25,10 @@ export default function ActivateInstance() {
 
     return parsed.adminToken;
   };
-
-  /* ===============================
-     🚀 CONNECT INSTANCE
-  =============================== */
   const connectInstance = async () => {
     try {
       setLoading(true);
       setError(null);
-      setStatus("pending");
 
       const token = getAdminToken();
 
@@ -177,11 +45,17 @@ export default function ActivateInstance() {
         const data = await res.json();
         throw new Error(data.error || "Connection failed");
       }
-
-      // Backend returns PNG directly
       const blob = await res.blob();
+      if (qrObjectUrlRef.current) {
+        URL.revokeObjectURL(qrObjectUrlRef.current);
+      }
+
       const imageUrl = URL.createObjectURL(blob);
+      qrObjectUrlRef.current = imageUrl;
+
       setQrUrl(imageUrl);
+      setStatus("pending");
+      setLoading(false);
 
     } catch (err: any) {
       setError(err.message);
@@ -189,10 +63,6 @@ export default function ActivateInstance() {
       setStatus("idle");
     }
   };
-
-  /* ===============================
-     🔁 CHECK STATUS (AUTO)
-  =============================== */
   const checkStatus = async () => {
     try {
       const token = getAdminToken();
@@ -212,32 +82,33 @@ export default function ActivateInstance() {
 
       if (data.ready) {
         setStatus("ready");
-        setLoading(false);
+        if (qrObjectUrlRef.current) {
+          URL.revokeObjectURL(qrObjectUrlRef.current);
+          qrObjectUrlRef.current = null;
+        }
+
         setQrUrl(null);
 
-        // Redirect to instance dashboard
         setTimeout(() => {
           router.push(`/instances/${instanceName}`);
-        }, 1500);
+        }, 1200);
       }
-
-    } catch (err) {
-      console.log("Status check error");
+    } catch {
     }
   };
-
-  /* ===============================
-     🔄 AUTO STATUS POLLING
-  =============================== */
   useEffect(() => {
-    if (status !== "pending") return;
+    if (status !== "pending" || !qrUrl) return;
 
-    const interval = setInterval(() => {
-      checkStatus();
-    }, 3000); // check every 3 seconds
-
+    const interval = setInterval(checkStatus, 3000);
     return () => clearInterval(interval);
-  }, [status]);
+  }, [status, qrUrl]); 
+  useEffect(() => {
+    return () => {
+      if (qrObjectUrlRef.current) {
+        URL.revokeObjectURL(qrObjectUrlRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div style={{ padding: 40 }}>
@@ -261,10 +132,8 @@ export default function ActivateInstance() {
         </button>
       )}
 
-      {loading && status === "pending" && (
-        <div style={{ marginTop: 20 }}>
-          <p>⏳ Waiting for QR generation...</p>
-        </div>
+      {loading && (
+        <p style={{ marginTop: 20 }}>⏳ Initializing WhatsApp…</p>
       )}
 
       {qrUrl && status === "pending" && (
@@ -282,14 +151,14 @@ export default function ActivateInstance() {
             }}
           />
           <p style={{ marginTop: 10 }}>
-            Scan this QR using WhatsApp → Linked Devices
+            WhatsApp → Linked Devices → Scan QR
           </p>
         </div>
       )}
 
       {status === "ready" && (
         <div style={{ marginTop: 30, color: "green" }}>
-          ✅ Connected Successfully! Redirecting...
+          ✅ Connected successfully! Redirecting…
         </div>
       )}
 
