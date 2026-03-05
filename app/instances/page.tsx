@@ -1,35 +1,48 @@
 "use client";
 
-import React from "react";
-// import CreateInstance from "../components/instancesConponent/createInstance";
-// import InstancesList from "../components/instancesConponent/instancesList";
+import React, { useEffect, useState } from "react";
 import CreateInstancePage from "./createinstance/page";
 import InstancesList from "./instanceslist/page";
 
 export default function InstancesPage() {
-  return (
-    <div className="min-h-screen flex flex-col lg:flex-row gap-6 p-6 bg-gray-50 dark:bg-[#0a0a0a] transition-colors duration-300">
-      {/* Left Pane — Create Instance */}
-      <div className="w-full lg:w-1/3 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-md p-6 border border-gray-200 dark:border-gray-800 transition-all duration-300">
-        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-          <span className="text-purple-600 dark:text-purple-400">+</span> Create Instance
-        </h2>
-        {/* <CreateInstance /> */}
-        <CreateInstancePage/>
-      </div>
+  const [listKey, setListKey] = useState(0);
 
-      {/* Right Pane — Instance List */}
-      <div className="flex-1 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-md p-6 border border-gray-200 dark:border-gray-800 transition-all duration-300">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Active Instances
-          </h2>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            Manage your running instances
-          </span>
+  useEffect(() => {
+    const refresh = () => setListKey(k => k + 1);
+    window.addEventListener("instance-created", refresh);
+    return () => window.removeEventListener("instance-created", refresh);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">WhatsApp Instances</h1>
+          <p className="text-gray-500 text-sm mt-1">Manage your WhatsApp connections — each instance is one phone number.</p>
         </div>
-        {/* <InstancesList /> */}
-        <InstancesList/>
+
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left Pane - Create Instance */}
+          <div className="w-full lg:w-80 flex-shrink-0">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">+</span>
+                New Instance
+              </h2>
+              <CreateInstancePage />
+            </div>
+          </div>
+
+          {/* Right Pane - Instances List */}
+          <div className="flex-1">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-base font-semibold text-gray-900 mb-4">
+                Your Instances
+              </h2>
+              <InstancesList key={listKey} />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

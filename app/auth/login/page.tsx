@@ -1,11 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { APP_NAME } from "@/app/config";
 import { loginAdmin } from "@/app/allapis";
 
 export default function LoginPage() {
+  const [registered, setRegistered] = useState(false);
+  useEffect(() => {
+    setRegistered(window.location.search.includes("registered=1"));
+  }, []);
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +35,6 @@ export default function LoginPage() {
       const data = await loginAdmin({ username, password });
       localStorage.setItem("token", data.admin.token);
       localStorage.setItem("admin", JSON.stringify(data.admin));
-      alert("Login successful!");
       window.location.href = "/dashboard";
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -68,6 +72,16 @@ export default function LoginPage() {
         <h1 className="text-4xl font-extrabold mb-6 text-center text-white drop-shadow-lg">
           Welcome to {APP_NAME}
         </h1>
+
+        {registered && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mb-4 text-center text-green-200 font-semibold"
+          >
+            Account created! Please login.
+          </motion.div>
+        )}
 
         {loginError && (
           <motion.div

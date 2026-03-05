@@ -69,14 +69,12 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await signupAdmin(form);
-      alert("Signup successful!");
-      window.location.href = "/auth/login";
+      window.location.href = "/auth/login?registered=1";
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        alert(error.message || "Signup failed!");
-      } else {
-        alert("Signup failed!");
-      }
+      setErrors(prev => ({
+        ...prev,
+        username: error instanceof Error ? error.message : "Signup failed",
+      }));
     } finally {
       setLoading(false);
     }
