@@ -52,7 +52,7 @@ export default function SuperAdminDashboard() {
 
   useEffect(() => {
     if (!isSuperAdmin) { router.push("/dashboard"); return; }
-  }, [isSuperAdmin]);
+  }, [isSuperAdmin, router]);
 
   const load = useCallback(async () => {
     if (!token) return;

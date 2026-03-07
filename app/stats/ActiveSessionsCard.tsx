@@ -2,7 +2,6 @@
 
 import { Phone } from "lucide-react";
 import StatCard from "../components/StatCard";
-import { log } from "console";
 
 interface ActiveSessionsCardProps {
   value: number | string;
