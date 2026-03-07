@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import {
-  getAllInstances, sendMessage, sendMedia, setWebhook,
+  getAllInstances, getInstanceStatus, sendMessage, sendMedia, setWebhook,
   deleteInstance, logoutInstance, getChats, getChatMessages,
   getContacts, checkNumber, getGroups, createGroup,
   getAccountInfo, getProfilePic, reactToMessage,
@@ -521,6 +521,11 @@ export default function InstanceDetails() {
       const r = await getAllInstances(t);
       const found = (r.data || []).find((i: Instance) => i.name === instanceName);
       if (!found) { setNotFound(true); return; }
+      // Merge with real-time status from the in-memory instance map
+      try {
+        const statusData = await getInstanceStatus(t, instanceName);
+        found.status = statusData.status;
+      } catch { /* use DB status if real-time check fails */ }
       setInstance(found);
     } catch { setNotFound(true); }
     finally { setLoading(false); }

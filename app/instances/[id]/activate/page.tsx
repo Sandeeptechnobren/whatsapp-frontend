@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { API_BASE_URL } from "../../../allapis";
 import { Smartphone, CheckCircle, RefreshCw, ArrowLeft, Wifi } from "lucide-react";
 
-type Status = "idle" | "loading" | "pending" | "ready" | "error";
+type Status = "idle" | "loading" | "polling" | "ready" | "error";
 
 function getAdminToken(): string | null {
   try {
@@ -22,18 +22,17 @@ export default function ActivateInstance() {
   const router = useRouter();
   const instanceName = params.id as string;
 
-  const [status, setStatus] = useState<Status>("idle");
-  const [qrUrl, setQrUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus]         = useState<Status>("idle");
+  const [qrUrl, setQrUrl]           = useState<string | null>(null);
+  const [error, setError]           = useState<string | null>(null);
+  const [qrRefreshing, setQrRefreshing] = useState(false);
 
   const qrObjectUrlRef = useRef<string | null>(null);
-  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollingRef     = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // ── helpers ──────────────────────────────────────────────────────────
   const clearPolling = () => {
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
-    }
+    if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
   };
 
   const revokeQrUrl = () => {
@@ -43,7 +42,15 @@ export default function ActivateInstance() {
     }
   };
 
-  const connectInstance = async () => {
+  const applyQrBlob = (blob: Blob) => {
+    revokeQrUrl();
+    const url = URL.createObjectURL(blob);
+    qrObjectUrlRef.current = url;
+    setQrUrl(url);
+  };
+
+  // ── start: POST /instance/connect — returns immediately ──────────────
+  const startInstance = async () => {
     try {
       setStatus("loading");
       setError(null);
@@ -51,76 +58,103 @@ export default function ActivateInstance() {
       const token = getAdminToken();
       if (!token) throw new Error("Session expired. Please login again.");
 
-      const res = await fetch(`${API_BASE_URL}instance/connect/${instanceName}`, {
-        method: "POST",
+      const res  = await fetch(`${API_BASE_URL}instance/connect/${instanceName}`, {
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
+        body:    JSON.stringify({ token }),
       });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Connection failed");
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Connection failed");
+      if (data.status === "ready") {
+        setStatus("ready");
+        setTimeout(() => router.push(`/instances/${instanceName}`), 1500);
+        return;
       }
 
-      const blob = await res.blob();
-      revokeQrUrl();
-
-      const imageUrl = URL.createObjectURL(blob);
-      qrObjectUrlRef.current = imageUrl;
-
-      setQrUrl(imageUrl);
-      setStatus("pending");
+      // Client is initializing or already has a QR — start polling
+      setStatus("polling");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Connection failed");
       setStatus("error");
     }
   };
 
-  const checkStatus = async () => {
-    try {
-      const token = getAdminToken();
-      if (!token) return;
+  // ── poll: check status AND fetch latest QR every 3 s ─────────────────
+  const poll = async () => {
+    const token = getAdminToken();
+    if (!token) return;
 
-      const res = await fetch(`${API_BASE_URL}instance/status/${instanceName}`, {
-        method: "POST",
+    const [statusRes, qrRes] = await Promise.allSettled([
+      fetch(`${API_BASE_URL}instance/status/${instanceName}`, {
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      });
+        body:    JSON.stringify({ token }),
+      }),
+      fetch(
+        `${API_BASE_URL}instance/qrpng/${instanceName}?token=${encodeURIComponent(token)}&t=${Date.now()}`,
+        { cache: "no-store" }
+      ),
+    ]);
 
-      if (!res.ok) return;
+    // Check if now ready → redirect
+    if (statusRes.status === "fulfilled" && statusRes.value.ok) {
+      try {
+        const data = await statusRes.value.json();
+        if (data.ready || data.status === "ready") {
+          clearPolling();
+          revokeQrUrl();
+          setQrUrl(null);
+          setStatus("ready");
+          setTimeout(() => router.push(`/instances/${instanceName}`), 1500);
+          return;
+        }
+      } catch { /* ignore parse errors */ }
+    }
 
-      const data = await res.json();
-
-      if (data.ready) {
-        clearPolling();
-        revokeQrUrl();
-        setQrUrl(null);
-        setStatus("ready");
-        setTimeout(() => router.push(`/instances/${instanceName}`), 1500);
-      }
-    } catch {
-      // silently ignore polling errors
+    // Update QR image if a fresh one is available
+    if (qrRes.status === "fulfilled" && qrRes.value.ok) {
+      try {
+        const blob = await qrRes.value.blob();
+        applyQrBlob(blob);
+      } catch { /* ignore */ }
     }
   };
 
-  useEffect(() => {
-    if (status === "pending" && qrUrl) {
-      pollingRef.current = setInterval(checkStatus, 3000);
-    }
-    return clearPolling;
-  }, [status, qrUrl]);
+  // ── manual QR refresh button ──────────────────────────────────────────
+  const refreshQr = async () => {
+    try {
+      setQrRefreshing(true);
+      const token = getAdminToken();
+      if (!token) return;
+      const res = await fetch(
+        `${API_BASE_URL}instance/qrpng/${instanceName}?token=${encodeURIComponent(token)}&t=${Date.now()}`,
+        { cache: "no-store" }
+      );
+      if (!res.ok) return;
+      const blob = await res.blob();
+      applyQrBlob(blob);
+    } catch { /* ignore */ }
+    finally { setQrRefreshing(false); }
+  };
 
+  // ── start / stop polling when status changes to "polling" ─────────────
   useEffect(() => {
-    return () => {
-      clearPolling();
-      revokeQrUrl();
-    };
-  }, []);
+    if (status !== "polling") return;
+    poll();                                          // immediate first call
+    pollingRef.current = setInterval(poll, 3000);   // then every 3 s
+    return () => clearPolling();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
+  // ── cleanup on unmount ────────────────────────────────────────────────
+  useEffect(() => () => { clearPolling(); revokeQrUrl(); }, []);
+
+  // ── render ────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-md">
-        {/* Back button */}
+
         <button
           onClick={() => router.push("/instances")}
           className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition"
@@ -141,7 +175,7 @@ export default function ActivateInstance() {
           </div>
 
           <div className="p-6">
-            {/* IDLE STATE */}
+            {/* IDLE */}
             {status === "idle" && (
               <div className="text-center">
                 <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -152,7 +186,7 @@ export default function ActivateInstance() {
                   Click the button below to generate a QR code, then scan it with WhatsApp on your phone.
                 </p>
                 <button
-                  onClick={connectInstance}
+                  onClick={startInstance}
                   className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition"
                 >
                   Generate QR Code
@@ -160,17 +194,26 @@ export default function ActivateInstance() {
               </div>
             )}
 
-            {/* LOADING STATE */}
+            {/* LOADING — waiting for connect response */}
             {status === "loading" && (
               <div className="text-center py-8">
                 <div className="w-16 h-16 border-4 border-green-100 border-t-green-500 rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-gray-600 font-medium">Initializing WhatsApp...</p>
-                <p className="text-gray-400 text-sm mt-1">This may take up to 30 seconds</p>
+                <p className="text-gray-600 font-medium">Starting WhatsApp...</p>
+                <p className="text-gray-400 text-sm mt-1">This usually takes a few seconds</p>
               </div>
             )}
 
-            {/* QR PENDING STATE */}
-            {status === "pending" && qrUrl && (
+            {/* POLLING — waiting for QR to appear */}
+            {status === "polling" && !qrUrl && (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 border-4 border-green-100 border-t-green-500 rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-gray-600 font-medium">Initializing WhatsApp...</p>
+                <p className="text-gray-400 text-sm mt-1">Generating QR code, please wait</p>
+              </div>
+            )}
+
+            {/* POLLING — QR ready to scan */}
+            {status === "polling" && qrUrl && (
               <div className="text-center">
                 <div className="relative inline-block">
                   <img
@@ -200,15 +243,17 @@ export default function ActivateInstance() {
                 </div>
 
                 <button
-                  onClick={connectInstance}
-                  className="mt-4 flex items-center gap-1.5 text-sm text-gray-500 hover:text-green-600 transition mx-auto"
+                  onClick={refreshQr}
+                  disabled={qrRefreshing}
+                  className="mt-4 flex items-center gap-1.5 text-sm text-gray-500 hover:text-green-600 transition mx-auto disabled:opacity-50"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" /> Refresh QR
+                  <RefreshCw className={`w-3.5 h-3.5 ${qrRefreshing ? "animate-spin" : ""}`} />
+                  {qrRefreshing ? "Refreshing..." : "Refresh QR"}
                 </button>
               </div>
             )}
 
-            {/* SUCCESS STATE */}
+            {/* SUCCESS */}
             {status === "ready" && (
               <div className="text-center py-6">
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -219,14 +264,14 @@ export default function ActivateInstance() {
               </div>
             )}
 
-            {/* ERROR STATE */}
+            {/* ERROR */}
             {status === "error" && (
               <div className="text-center">
                 <div className="p-4 bg-red-50 border border-red-200 rounded-xl mb-4">
                   <p className="text-red-600 text-sm">{error}</p>
                 </div>
                 <button
-                  onClick={connectInstance}
+                  onClick={startInstance}
                   className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition"
                 >
                   Try Again
