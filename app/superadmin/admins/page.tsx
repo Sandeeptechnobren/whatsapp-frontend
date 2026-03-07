@@ -36,7 +36,7 @@ export default function SuperAdminAdmins() {
   const [deleting, setDeleting] = useState<number | null>(null);
   const [search, setSearch] = useState("");
 
-  useEffect(() => { if (!isSuperAdmin) router.push("/dashboard"); }, [isSuperAdmin]);
+  useEffect(() => { if (!isSuperAdmin) router.push("/dashboard"); }, [isSuperAdmin, router]);
 
   const load = useCallback(async () => {
     if (!token) return;

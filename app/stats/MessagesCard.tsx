@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { MessageSquare } from "lucide-react";
 import StatCard from "../components/StatCard";
 

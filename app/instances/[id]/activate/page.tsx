@@ -216,6 +216,7 @@ export default function ActivateInstance() {
             {status === "polling" && qrUrl && (
               <div className="text-center">
                 <div className="relative inline-block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={qrUrl}
                     alt="WhatsApp QR Code"

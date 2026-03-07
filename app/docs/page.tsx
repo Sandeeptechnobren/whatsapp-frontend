@@ -4,7 +4,7 @@ import { useState } from "react";
 import { API_BASE_URL } from "../allapis";
 import {
   ChevronDown, ChevronRight, Copy, CheckCheck, Terminal,
-  MessageSquare, Image, MapPin, Users, Phone, Settings,
+  MessageSquare, Users, Phone, Settings,
   CreditCard, ShieldCheck, Zap, Key
 } from "lucide-react";
 
@@ -13,7 +13,7 @@ interface Endpoint {
   path: string;
   desc: string;
   auth: "token" | "jwt" | "none";
-  body?: Record<string, string>;
+  body?: Record<string, unknown>;
   response?: Record<string, unknown>;
 }
 
@@ -210,7 +210,7 @@ const sections: Section[] = [
     endpoints: [
       {
         method: "POST", path: "(your webhook URL)", desc: "Events sent to your webhook URL when messages arrive.", auth: "none",
-        body: { event: "message", instanceId: "my-instance", data: { from: "919...", body: "Hello", timestamp: 1700000, type: "chat", fromMe: false } as unknown as string },
+        body: { event: "message", instanceId: "my-instance", data: { from: "919...", body: "Hello", timestamp: 1700000, type: "chat", fromMe: false } },
         response: { _note: "Your server must return HTTP 200. Retries: none." },
       },
     ],

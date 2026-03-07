@@ -42,7 +42,7 @@ export default function SuperAdminPayments() {
   const [rejectId, setRejectId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
-  useEffect(() => { if (!isSuperAdmin) router.push("/dashboard"); }, [isSuperAdmin]);
+  useEffect(() => { if (!isSuperAdmin) router.push("/dashboard"); }, [isSuperAdmin, router]);
 
   const load = useCallback(async () => {
     if (!token) return;

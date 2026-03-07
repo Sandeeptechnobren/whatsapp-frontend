@@ -6,12 +6,11 @@ import {
   getAllInstances, getInstanceStatus, sendMessage, sendMedia, setWebhook,
   deleteInstance, logoutInstance, getChats, getChatMessages,
   getContacts, checkNumber, getGroups, createGroup,
-  getAccountInfo, getProfilePic, reactToMessage,
 } from "../../allapis";
 import {
   ArrowLeft, Copy, CheckCheck, Send, Globe, Trash2, LogOut,
-  Wifi, WifiOff, Clock, RefreshCw, AlertTriangle, MessageSquare,
-  Users, Phone, Image, MapPin, ChevronRight, Lock, CreditCard,
+  Clock, RefreshCw, AlertTriangle, MessageSquare,
+  Users, Phone, Image as ImageIcon, ChevronRight, Lock, CreditCard,
 } from "lucide-react";
 
 /* ================================================================== */
@@ -30,6 +29,34 @@ interface Instance {
 
 type Tab = "send" | "media" | "chats" | "contacts" | "groups" | "webhook" | "settings";
 
+interface Chat {
+  id: string;
+  name: string;
+  isGroup: boolean;
+  unreadCount: number;
+  lastMessage?: { body: string };
+}
+
+interface ChatMessage {
+  id: { id: string };
+  body: string;
+  type: string;
+  fromMe: boolean;
+  timestamp: number;
+}
+
+interface Contact {
+  id: string;
+  name: string;
+  number: string;
+}
+
+interface Group {
+  id: string;
+  name: string;
+  participantCount: number;
+}
+
 /* ================================================================== */
 /*  Helpers                                                             */
 /* ================================================================== */
@@ -37,7 +64,6 @@ function getAdminToken() {
   try { return JSON.parse(localStorage.getItem("admin") || "")?.adminToken || null; }
   catch { return null; }
 }
-function getJwt() { return localStorage.getItem("token"); }
 
 function daysLeft(dateStr?: string) {
   if (!dateStr) return null;
@@ -176,7 +202,7 @@ function MediaTab({ instanceName, isReady }: { instanceName: string; isReady: bo
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">File (image / video / document)</label>
         <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-green-400 transition cursor-pointer" onClick={() => document.getElementById("file-input")?.click()}>
-          {file ? <p className="text-sm text-green-700 font-medium">{file.name}</p> : <><Image className="w-8 h-8 text-gray-300 mx-auto mb-1" /><p className="text-sm text-gray-400">Click to select file</p></>}
+          {file ? <p className="text-sm text-green-700 font-medium">{file.name}</p> : <><ImageIcon className="w-8 h-8 text-gray-300 mx-auto mb-1" /><p className="text-sm text-gray-400">Click to select file</p></>}
           <input id="file-input" type="file" className="hidden" onChange={e => setFile(e.target.files?.[0] || null)} disabled={!isReady} />
         </div>
       </div>
@@ -186,7 +212,7 @@ function MediaTab({ instanceName, isReady }: { instanceName: string; isReady: bo
       </div>
       {result && <Alert ok={result.ok} msg={result.msg} />}
       <button type="submit" disabled={loading || !phone.trim() || !file || !isReady} className="flex items-center justify-center gap-2 w-full py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-200 disabled:text-gray-400 text-white font-semibold rounded-xl transition text-sm">
-        {loading ? <Spinner /> : <Image className="w-4 h-4" />} {loading ? "Sending..." : "Send Media"}
+        {loading ? <Spinner /> : <ImageIcon className="w-4 h-4" />} {loading ? "Sending..." : "Send Media"}
       </button>
     </form>
   );
@@ -196,10 +222,10 @@ function MediaTab({ instanceName, isReady }: { instanceName: string; isReady: bo
 /*  Tab: Chats                                                          */
 /* ================================================================== */
 function ChatsTab({ instanceName, isReady }: { instanceName: string; isReady: boolean }) {
-  const [chats, setChats] = useState<any[]>([]);
+  const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState<any>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [selected, setSelected] = useState<Chat | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [msgLoading, setMsgLoading] = useState(false);
 
   const load = async () => {
@@ -207,7 +233,7 @@ function ChatsTab({ instanceName, isReady }: { instanceName: string; isReady: bo
     catch { } finally { setLoading(false); }
   };
 
-  const loadMessages = async (chat: any) => {
+  const loadMessages = async (chat: Chat) => {
     setSelected(chat); setMessages([]);
     try {
       setMsgLoading(true);
@@ -263,7 +289,7 @@ function ChatsTab({ instanceName, isReady }: { instanceName: string; isReady: bo
 /*  Tab: Contacts                                                       */
 /* ================================================================== */
 function ContactsTab({ instanceName, isReady }: { instanceName: string; isReady: boolean }) {
-  const [contacts, setContacts] = useState<any[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(false);
   const [checkNum, setCheckNum] = useState("");
   const [checkResult, setCheckResult] = useState<string | null>(null);
@@ -314,7 +340,7 @@ function ContactsTab({ instanceName, isReady }: { instanceName: string; isReady:
 /*  Tab: Groups                                                         */
 /* ================================================================== */
 function GroupsTab({ instanceName, isReady }: { instanceName: string; isReady: boolean }) {
-  const [groups, setGroups] = useState<any[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(false);
   const [newName, setNewName] = useState("");
   const [newParticipants, setNewParticipants] = useState("");
@@ -374,7 +400,7 @@ function GroupsTab({ instanceName, isReady }: { instanceName: string; isReady: b
 /* ================================================================== */
 /*  Tab: Webhook                                                        */
 /* ================================================================== */
-function WebhookTab({ instanceName, instance }: { instanceName: string; instance: Instance }) {
+function WebhookTab({ instanceName }: { instanceName: string }) {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -529,7 +555,7 @@ export default function InstanceDetails() {
       setInstance(found);
     } catch { setNotFound(true); }
     finally { setLoading(false); }
-  }, [instanceName]);
+  }, [instanceName, router]);
 
   useEffect(() => { loadInstance(); }, [loadInstance]);
 
@@ -552,7 +578,7 @@ export default function InstanceDetails() {
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "send",     label: "Send Text",  icon: <MessageSquare className="w-3.5 h-3.5" /> },
-    { id: "media",    label: "Media",      icon: <Image className="w-3.5 h-3.5" /> },
+    { id: "media",    label: "Media",      icon: <ImageIcon className="w-3.5 h-3.5" /> },
     { id: "chats",    label: "Chats",      icon: <MessageSquare className="w-3.5 h-3.5" /> },
     { id: "contacts", label: "Contacts",   icon: <Phone className="w-3.5 h-3.5" /> },
     { id: "groups",   label: "Groups",     icon: <Users className="w-3.5 h-3.5" /> },
@@ -632,7 +658,7 @@ export default function InstanceDetails() {
             {activeTab === "chats"    && <ChatsTab instanceName={instance.name} isReady={isReady} />}
             {activeTab === "contacts" && <ContactsTab instanceName={instance.name} isReady={isReady} />}
             {activeTab === "groups"   && <GroupsTab instanceName={instance.name} isReady={isReady} />}
-            {activeTab === "webhook"  && <WebhookTab instanceName={instance.name} instance={instance} />}
+            {activeTab === "webhook"  && <WebhookTab instanceName={instance.name} />}
             {activeTab === "settings" && <SettingsTab instance={instance} instanceName={instance.name} />}
           </div>
         </div>

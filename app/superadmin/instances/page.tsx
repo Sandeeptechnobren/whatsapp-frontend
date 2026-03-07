@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { saGetInstances, saLockInstance, saUnlockInstance } from "../../allapis";
 import { useAuth } from "../../AuthContext";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Lock, Unlock, RefreshCw, Wifi, WifiOff, Clock } from "lucide-react";
+import { ArrowLeft, Lock, Unlock, RefreshCw } from "lucide-react";
 
 interface Instance {
   id: number;
@@ -47,7 +47,7 @@ export default function SuperAdminInstances() {
   const [unlockDays, setUnlockDays] = useState(30);
   const [search, setSearch] = useState("");
 
-  useEffect(() => { if (!isSuperAdmin) router.push("/dashboard"); }, [isSuperAdmin]);
+  useEffect(() => { if (!isSuperAdmin) router.push("/dashboard"); }, [isSuperAdmin, router]);
 
   const load = useCallback(async () => {
     if (!token) return;
