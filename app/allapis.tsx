@@ -173,6 +173,38 @@ export async function removeGroupParticipants(token: string, instanceId: string,
 }
 
 /* ------------------------------------------------------------------ */
+/*  AI / Groq settings (per-admin, dynamic)                             */
+/* ------------------------------------------------------------------ */
+export async function getAISettings(token: string) {
+  return call("settings/ai", "POST", { token });
+}
+
+export async function updateAISettings(token: string, groqApiKey: string, groqModel: string) {
+  return call("settings/ai", "PUT", { token, groqApiKey, groqModel });
+}
+
+export async function testAIConnection(token: string, groqApiKey: string, groqModel: string) {
+  return call("settings/ai/test", "POST", { token, groqApiKey, groqModel });
+}
+
+/* ------------------------------------------------------------------ */
+/*  Auto-reply settings                                                  */
+/* ------------------------------------------------------------------ */
+export async function getAutoReplySettings(token: string, instanceId: string) {
+  return call(`instance/auto-reply/${instanceId}`, "POST", { token });
+}
+
+export async function updateAutoReplySettings(
+  token: string,
+  instanceId: string,
+  enabled: boolean,
+  scope: "private" | "groups" | "all",
+  prompt: string
+) {
+  return call(`instance/auto-reply/${instanceId}`, "PUT", { token, enabled, scope, prompt });
+}
+
+/* ------------------------------------------------------------------ */
 /*  Payments (JWT)                                                       */
 /* ------------------------------------------------------------------ */
 export async function requestPayment(

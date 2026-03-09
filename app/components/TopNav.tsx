@@ -4,17 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "../AuthContext";
 import { APP_NAME } from "../config";
-import { LogOut, MessageSquareMore, ShieldCheck } from "lucide-react";
+import { LogOut, MessageSquareMore, ShieldCheck, Settings } from "lucide-react";
 
 export default function TopNav() {
   const pathname = usePathname();
   const { logout, admin, isSuperAdmin } = useAuth();
 
   const navItems = [
-    { href: "/dashboard",          label: "Dashboard" },
-    { href: "/instances",          label: "Instances" },
+    { href: "/dashboard",            label: "Dashboard" },
+    { href: "/instances",            label: "Instances" },
     { href: "/billing_subscription", label: "Billing" },
-    { href: "/docs",               label: "Docs" },
+    { href: "/settings",             label: "AI Settings" },
+    { href: "/docs",                 label: "Docs" },
   ];
 
   const isActive = (href: string) =>
@@ -65,6 +66,15 @@ export default function TopNav() {
 
         {/* Right side */}
         <div className="flex items-center gap-2 flex-shrink-0">
+          <Link
+            href="/settings"
+            title="AI Settings"
+            className={`p-2 rounded-lg transition md:hidden ${
+              isActive("/settings") ? "bg-violet-50 text-violet-700" : "text-gray-500 hover:bg-gray-100"
+            }`}
+          >
+            <Settings className="w-4 h-4" />
+          </Link>
           {admin && (
             <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-100 rounded-lg">
               <div className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold ${
